@@ -57,15 +57,15 @@ char* header_file = HEADER;
 char* op_file = OPERATOR_E;
 char* prelude = PRELUDE_E;
 
-int	languageFlag = 0;
+int	language_flag = 0;
 
 FILE* f_out;
 int	errors = 0;
 int	sem_errors = 0;
-struct glob_list aa;
-struct glob_list* globals = &aa;
+struct glob_list globals;
+struct glob_list* globals_ptr = &globals;
 struct symbol s;
-void	compile(char*);
+void compile(char*);
 
 int main(int argc, char** argv) {
 	int	i;
@@ -74,26 +74,20 @@ int main(int argc, char** argv) {
 			switch (argv[i][1]) {
 			case 'c': 	c_file = argv[i + 1]; i++;
 				break;
-
-			case 'F':	languageFlag = atoi(argv[i + 1]); i++;
+			case 'F':	language_flag = atoi(argv[i + 1]); i++;
 				break;
-
 			case 'f':	include_file = argv[i + 1]; i++;
 				break;
-
 			case 'o':	op_file = argv[i + 1]; i++;
 				break;
-
 			case 'p':	prelude = argv[i + 1]; i++;
 				break;
-
 			case 'h':	header_file = argv[i + 1]; i++;
 				break;
-
 			case 't':	compile_time = argv[i + 1]; i++;
 				break;
-
-			default:	break;
+			default:
+				break;
 			}
 		}
 		else {
@@ -101,7 +95,7 @@ int main(int argc, char** argv) {
 			infile = argv[i];
 		}
 	}
-	if (infile == (char*)0) {
+	if (infile == NULL) {
 		fprintf(stderr, "No input file given\n");
 		exit(EXIT_FAILURE);
 	}
@@ -135,11 +129,11 @@ int	get_nodeid(treenode* t) {
 }
 
 treenode* get_nextnode(treenode* t) {
-	return  (treenode*)(t[NEXTNODE].f);
+	return  (treenode*)(t[NEXTNODE].next);
 }
 
-void	set_nextnode(treenode* x, treenode* y) {
-	x[NEXTNODE].f = y;
+void set_nextnode(treenode* x, treenode* y) {
+	x[NEXTNODE].next = y;
 }
 
 int	get_lineno(treenode* t) {
@@ -162,8 +156,8 @@ unsigned int get_flags(treenode* t) {
 	return (t[NODE_FLAGS].flags);
 }
 
-void	set_flags(treenode* t, unsigned int f) {
-	t[NODE_FLAGS].flags = f;
+void	set_flags(treenode* t, unsigned int next) {
+	t[NODE_FLAGS].flags = next;
 }
 
 
@@ -221,59 +215,59 @@ void	set_flags(treenode* t, unsigned int f) {
 #define	SIZEOF_ERROR_TYPE	SIZEOF_TYPE_DEF
 
 char* get_decl_ident(treenode* t) {
-	return (char*)(t[DECL_IDENT].f);
+	return (char*)(t[DECL_IDENT].next);
 }
 
 void	set_decl_ident(treenode* t, char* s) {
-	t[DECL_IDENT].f = (treenode*)s;
+	t[DECL_IDENT].next = (treenode*)s;
 }
 
 treenode* get_decl_env(treenode* t) {
-	return t[DECL_ENV].f;
+	return t[DECL_ENV].next;
 }
 
 void	set_decl_env(treenode* t, treenode* e) {
-	t[DECL_ENV].f = e;
+	t[DECL_ENV].next = e;
 }
 
 treenode* get_next_dec(treenode* t) {
-	return t[NEXT_DEC].f;
+	return t[NEXT_DEC].next;
 }
 
 void	set_next_dec(treenode* t, treenode* n) {
-	t[NEXT_DEC].f = n;
+	t[NEXT_DEC].next = n;
 }
 
 char* get_c_name(treenode* t) {
-	return (char*)(t[C_NAME].f);
+	return (char*)(t[C_NAME].next);
 }
 
 void	set_c_name(treenode* t, char* s) {
-	t[C_NAME].f = (treenode*)s;
+	t[C_NAME].next = (treenode*)s;
 }
 
 char* get_type_id(treenode* t) {
-	return (char*)(t[TYPE_ID].f);
+	return (char*)(t[TYPE_ID].next);
 }
 
 void	set_type_id(treenode* t, char* id) {
-	t[TYPE_ID].f = (treenode*)id;
+	t[TYPE_ID].next = (treenode*)id;
 }
 
 char* get_internal_name(treenode* t) {
-	return (char*)(t[INTERNAL_NAME].f);
+	return (char*)(t[INTERNAL_NAME].next);
 }
 
 void	set_internal_name(treenode* t, char* in) {
-	t[INTERNAL_NAME].f = (treenode*)in;
+	t[INTERNAL_NAME].next = (treenode*)in;
 }
 
 char* get_c_type(treenode* t) {
-	return (char*)(t[C_TYPE].f);
+	return (char*)(t[C_TYPE].next);
 }
 
 void	set_c_type(treenode* t, char* ct) {
-	t[C_TYPE].f = (treenode*)ct;
+	t[C_TYPE].next = (treenode*)ct;
 }
 
 
@@ -286,11 +280,11 @@ void	set_c_type(treenode* t, char* ct) {
 #define	SIZEOF_ARRAY_TYPE	ELEMENT_TYPE+1
 
 treenode* get_element_type(treenode* t) {
-	return t[ELEMENT_TYPE].f;
+	return t[ELEMENT_TYPE].next;
 }
 
 void	set_element_type(treenode* t, treenode* et) {
-	t[ELEMENT_TYPE].f = et;
+	t[ELEMENT_TYPE].next = et;
 }
 
 //class proc_type: public type_def {
@@ -302,11 +296,11 @@ void	set_element_type(treenode* t, treenode* et) {
 #define	SIZEOF_PROC_TYPE	PROCTYPE_RETURNTYPE+1
 
 treenode* get_proctype_returntype(treenode* t) {
-	return t[PROCTYPE_RETURNTYPE].f;
+	return t[PROCTYPE_RETURNTYPE].next;
 }
 
 void	set_proctype_returntype(treenode* t, treenode* rt) {
-	t[PROCTYPE_RETURNTYPE].f = rt;
+	t[PROCTYPE_RETURNTYPE].next = rt;
 }
 
 //class bin_param: public treenode {
@@ -324,35 +318,35 @@ void	set_proctype_returntype(treenode* t, treenode* rt) {
 #define	SIZEOF_BINPARAM		C_STRING_FOR_BIN+1
 
 treenode* get_left_operand_for_bin(treenode* t) {
-	return t[LEFT_OPERAND_FOR_BIN].f;
+	return t[LEFT_OPERAND_FOR_BIN].next;
 }
 
 void	set_left_operand_for_bin(treenode* t, treenode* lo) {
-	t[LEFT_OPERAND_FOR_BIN].f = lo;
+	t[LEFT_OPERAND_FOR_BIN].next = lo;
 }
 
 treenode* get_right_operand_for_bin(treenode* t) {
-	return t[RIGHT_OPERAND_FOR_BIN].f;
+	return t[RIGHT_OPERAND_FOR_BIN].next;
 }
 
 void	set_right_operand_for_bin(treenode* t, treenode* ro) {
-	t[RIGHT_OPERAND_FOR_BIN].f = ro;
+	t[RIGHT_OPERAND_FOR_BIN].next = ro;
 }
 
 treenode* get_return_type_for_bin(treenode* t) {
-	return t[RETURN_TYPE_FOR_BIN].f;
+	return t[RETURN_TYPE_FOR_BIN].next;
 }
 
 void	set_return_type_for_bin(treenode* t, treenode* rt) {
-	t[RETURN_TYPE_FOR_BIN].f = rt;
+	t[RETURN_TYPE_FOR_BIN].next = rt;
 }
 
 char* get_c_string_for_bin(treenode* t) {
-	return (char*)(t[C_STRING_FOR_BIN].f);
+	return (char*)(t[C_STRING_FOR_BIN].next);
 }
 
 void	set_c_string_for_bin(treenode* t, char* cs) {
-	t[C_STRING_FOR_BIN].f = (treenode*)cs;
+	t[C_STRING_FOR_BIN].next = (treenode*)cs;
 }
 
 //class binop: public treenode {
@@ -368,11 +362,11 @@ void	set_c_string_for_bin(treenode* t, char* cs) {
 #define	SIZEOF_BINOP	BINARY_PARAMS+1
 
 char* get_opsym_for_bin(treenode* t) {
-	return (char*)(t[OPSYM_FOR_BIN].f);
+	return (char*)(t[OPSYM_FOR_BIN].next);
 }
 
 void	set_opsym_for_bin(treenode* t, char* op) {
-	t[OPSYM_FOR_BIN].f = (treenode*)op;
+	t[OPSYM_FOR_BIN].next = (treenode*)op;
 }
 
 int	get_binary_prio(treenode* t) {
@@ -384,11 +378,11 @@ void	set_binary_prio(treenode* t, int binary_priority) {
 }
 
 treenode* get_binary_params(treenode* t) {
-	return t[BINARY_PARAMS].f;
+	return t[BINARY_PARAMS].next;
 }
 
 void	set_binary_params(treenode* t, treenode* par) {
-	t[BINARY_PARAMS].f = par;
+	t[BINARY_PARAMS].next = par;
 }
 
 //class un_param: public treenode {
@@ -404,27 +398,27 @@ void	set_binary_params(treenode* t, treenode* par) {
 #define	SIZEOF_UNPARAM		C_STRING_FOR_UN+1
 
 treenode* get_left_for_un(treenode* t) {
-	return t[LEFT_FOR_UN].f;
+	return t[LEFT_FOR_UN].next;
 }
 
 void set_left_for_un(treenode* t, treenode* left) {
-	t[LEFT_FOR_UN].f = left;
+	t[LEFT_FOR_UN].next = left;
 }
 
 treenode* get_return_type_for_un(treenode* t) {
-	return t[RETURN_TYPE_FOR_UN].f;
+	return t[RETURN_TYPE_FOR_UN].next;
 }
 
 void	set_return_type_for_un(treenode* t, treenode* rt) {
-	t[RETURN_TYPE_FOR_UN].f = rt;
+	t[RETURN_TYPE_FOR_UN].next = rt;
 }
 
 char* get_c_string_for_un(treenode* t) {
-	return (char*)(t[C_STRING_FOR_UN].f);
+	return (char*)(t[C_STRING_FOR_UN].next);
 }
 
 void	set_c_string_for_un(treenode* t, char* cs) {
-	t[C_STRING_FOR_UN].f = (treenode*)cs;
+	t[C_STRING_FOR_UN].next = (treenode*)cs;
 }
 
 //class unop: public treenode {
@@ -440,11 +434,11 @@ void	set_c_string_for_un(treenode* t, char* cs) {
 #define	SIZEOF_UNOP	UNARY_PARAMS+1
 
 char* get_opsym_for_un(treenode* t) {
-	return (char*)(t[OPSYM_FOR_UN].f);
+	return (char*)(t[OPSYM_FOR_UN].next);
 }
 
 void	set_opsym_for_un(treenode* t, char* op) {
-	t[OPSYM_FOR_UN].f = (treenode*)op;
+	t[OPSYM_FOR_UN].next = (treenode*)op;
 }
 
 int	get_unary_prio(treenode* t) {
@@ -456,11 +450,11 @@ void	set_unary_prio(treenode* t, int priority) {
 }
 
 treenode* get_unary_params(treenode* t) {
-	return t[UNARY_PARAMS].f;
+	return t[UNARY_PARAMS].next;
 }
 
 void	set_unary_params(treenode* t, treenode* un) {
-	t[UNARY_PARAMS].f = un;
+	t[UNARY_PARAMS].next = un;
 }
 
 //class statement : public treenode {
@@ -472,11 +466,11 @@ void	set_unary_params(treenode* t, treenode* un) {
 #define	SIZEOF_STATEMENT	LABEL+1
 
 treenode* get_label(treenode* t) {
-	return t[LABEL].f;
+	return t[LABEL].next;
 }
 
 void	set_label(treenode* t, treenode* lab) {
-	t[LABEL].f = lab;
+	t[LABEL].next = lab;
 }
 
 //class env: public statement {
@@ -492,27 +486,27 @@ void	set_label(treenode* t, treenode* lab) {
 #define	SIZEOF_ENV	LAST_STATEMENT+1
 
 treenode* get_surrounding(treenode* t) {
-	return t[SURR].f;
+	return t[SURR].next;
 }
 
 void	set_surrounding(treenode* t, treenode* sur) {
-	t[SURR].f = sur;
+	t[SURR].next = sur;
 }
 
 treenode* get_statements(treenode* t) {
-	return t[STATEMENTS].f;
+	return t[STATEMENTS].next;
 }
 
 void	set_statements(treenode* t, treenode* st) {
-	t[STATEMENTS].f = st;
+	t[STATEMENTS].next = st;
 }
 
 treenode* get_last_statement(treenode* t) {
-	return t[LAST_STATEMENT].f;
+	return t[LAST_STATEMENT].next;
 }
 
 void	set_last_statement(treenode* t, treenode* lt) {
-	t[LAST_STATEMENT].f = lt;
+	t[LAST_STATEMENT].next = lt;
 }
 
 //class for_element: public treenode {
@@ -528,11 +522,11 @@ void	set_last_statement(treenode* t, treenode* lt) {
 #define	SIZEOF_EXPRESSION	EXPR_TYPE+1
 
 treenode* get_expr_type(treenode* t) {
-	return t[EXPR_TYPE].f;
+	return t[EXPR_TYPE].next;
 }
 
 void	set_expr_type(treenode* t, treenode* typ) {
-	t[EXPR_TYPE].f = typ;
+	t[EXPR_TYPE].next = typ;
 }
 
 //class bounds: public expression {
@@ -546,19 +540,19 @@ void	set_expr_type(treenode* t, treenode* typ) {
 #define	SIZEOF_BOUNDS	SECOND_BOUND+1
 
 treenode* get_first_bound(treenode* t) {
-	return t[FIRST_BOUND].f;
+	return t[FIRST_BOUND].next;
 }
 
 treenode* get_second_bound(treenode* t) {
-	return t[SECOND_BOUND].f;
+	return t[SECOND_BOUND].next;
 }
 
 void	set_first_bound(treenode* t, treenode* fb) {
-	t[FIRST_BOUND].f = fb;
+	t[FIRST_BOUND].next = fb;
 }
 
 void	set_second_bound(treenode* t, treenode* sb) {
-	t[SECOND_BOUND].f = sb;
+	t[SECOND_BOUND].next = sb;
 }
 
 //class if_stat: public statement {
@@ -574,26 +568,26 @@ void	set_second_bound(treenode* t, treenode* sb) {
 #define	SIZEOF_IF_STAT	IFELSEPART+1
 
 treenode* get_ifcondition(treenode* t) {
-	return t[IFCONDITION].f;
+	return t[IFCONDITION].next;
 }
 
 treenode* get_ifthenpart(treenode* t) {
-	return t[IFTHENPART].f;
+	return t[IFTHENPART].next;
 }
 
 treenode* get_ifelsepart(treenode* t) {
-	return t[IFELSEPART].f;
+	return t[IFELSEPART].next;
 }
 void	set_ifcondition(treenode* t, treenode* ifc) {
-	t[IFCONDITION].f = ifc;
+	t[IFCONDITION].next = ifc;
 }
 
 void	set_ifthenpart(treenode* t, treenode* ift) {
-	t[IFTHENPART].f = ift;
+	t[IFTHENPART].next = ift;
 }
 
 void	set_ifelsepart(treenode* t, treenode* ife) {
-	t[IFELSEPART].f = ife;
+	t[IFELSEPART].next = ife;
 }
 
 //class assignment: public statement {
@@ -607,19 +601,19 @@ void	set_ifelsepart(treenode* t, treenode* ife) {
 #define	SIZEOF_ASSIGNMENT	RHS_EXPRESSION+1
 
 treenode* get_lhs_expression(treenode* t) {
-	return t[LHS_EXPRESSION].f;
+	return t[LHS_EXPRESSION].next;
 }
 
 void	set_lhs_expression(treenode* t, treenode* lhs) {
-	t[LHS_EXPRESSION].f = lhs;
+	t[LHS_EXPRESSION].next = lhs;
 }
 
 treenode* get_rhs_expression(treenode* t) {
-	return t[RHS_EXPRESSION].f;
+	return t[RHS_EXPRESSION].next;
 }
 
 void	set_rhs_expression(treenode* t, treenode* rhs) {
-	t[RHS_EXPRESSION].f = rhs;
+	t[RHS_EXPRESSION].next = rhs;
 }
 
 //class goto_stat: public statement {
@@ -631,11 +625,11 @@ void	set_rhs_expression(treenode* t, treenode* rhs) {
 #define	SIZEOF_GOTO_STAT	GOTO_TARGET+1
 
 treenode* get_target(treenode* t) {
-	return t[GOTO_TARGET].f;
+	return t[GOTO_TARGET].next;
 }
 
 void	set_target(treenode* t, treenode* targ) {
-	t[GOTO_TARGET].f = targ;
+	t[GOTO_TARGET].next = targ;
 }
 
 //class null_statement : public statement {
@@ -664,35 +658,35 @@ void	set_target(treenode* t, treenode* targ) {
 #define	SIZEOF_BINARY_EXPRESSION	BIN_OPDEF+1
 
 treenode* get_bin_operator(treenode* t) {
-	return t[BIN_OPERATOR].f;
+	return t[BIN_OPERATOR].next;
 }
 
 void	set_bin_operator(treenode* t, treenode* binop) {
-	t[BIN_OPERATOR].f = binop;
+	t[BIN_OPERATOR].next = binop;
 }
 
 treenode* get_binary_left_operand(treenode* t) {
-	return t[BINARY_LEFT_OPERAND].f;
+	return t[BINARY_LEFT_OPERAND].next;
 }
 
 void	set_binary_left_operand(treenode* t, treenode* lo) {
-	t[BINARY_LEFT_OPERAND].f = lo;
+	t[BINARY_LEFT_OPERAND].next = lo;
 }
 
 treenode* get_binary_right_operand(treenode* t) {
-	return t[BINARY_RIGHT_OPERAND].f;
+	return t[BINARY_RIGHT_OPERAND].next;
 }
 
 void	set_binary_right_operand(treenode* t, treenode* ro) {
-	t[BINARY_RIGHT_OPERAND].f = ro;
+	t[BINARY_RIGHT_OPERAND].next = ro;
 }
 
 treenode* get_bin_opdef(treenode* t) {
-	return t[BIN_OPDEF].f;
+	return t[BIN_OPDEF].next;
 }
 
 void	set_bin_opdef(treenode* t, treenode* opdef) {
-	t[BIN_OPDEF].f = opdef;
+	t[BIN_OPDEF].next = opdef;
 }
 
 //class unary_expression: public expression {
@@ -708,27 +702,27 @@ void	set_bin_opdef(treenode* t, treenode* opdef) {
 #define	SIZEOF_UNARY_EXPRESSION	UNARY_OPERAND+1
 
 treenode* get_un_operator(treenode* t) {
-	return t[UN_OPERATOR].f;
+	return t[UN_OPERATOR].next;
 }
 
 void	set_un_operator(treenode* t, treenode* unop) {
-	t[UN_OPERATOR].f = unop;
+	t[UN_OPERATOR].next = unop;
 }
 
 treenode* get_unary_operand(treenode* t) {
-	return t[UNARY_OPERAND].f;
+	return t[UNARY_OPERAND].next;
 }
 
 void	set_unary_operand(treenode* t, treenode* uo) {
-	t[UNARY_OPERAND].f = uo;
+	t[UNARY_OPERAND].next = uo;
 }
 
 treenode* get_un_opdef(treenode* t) {
-	return t[UN_OPDEF].f;
+	return t[UN_OPDEF].next;
 }
 
 void	set_un_opdef(treenode* t, treenode* un) {
-	t[UN_OPDEF].f = un;
+	t[UN_OPDEF].next = un;
 }
 
 //class inumber: public expression {
@@ -754,11 +748,11 @@ void	set_un_opdef(treenode* t, treenode* un) {
 #define	X_VALUE		EXPR_TYPE+1
 #define	SIZEOF_NUMBER	X_VALUE+1
 char* get_x_value(treenode* t) {
-	return (char*)(t[X_VALUE].f);
+	return (char*)(t[X_VALUE].next);
 }
 
 void	set_x_value(treenode* t, char* s) {
-	t[X_VALUE].f = (treenode*)s;
+	t[X_VALUE].next = (treenode*)s;
 }
 
 //class id_as_prim: public expression {
@@ -771,19 +765,19 @@ void	set_x_value(treenode* t, char* s) {
 #define	SIZEOF_ID_AS_PRIM	ID_DEF+1
 
 char* get_resolve_ident(treenode* t) {
-	return (char*)(t[RESOLVE_IDENT].f);
+	return (char*)(t[RESOLVE_IDENT].next);
 }
 
 void	set_resolve_ident(treenode* t, char* id) {
-	t[RESOLVE_IDENT].f = (treenode*)id;
+	t[RESOLVE_IDENT].next = (treenode*)id;
 }
 
 treenode* get_id_def(treenode* t) {
-	return t[ID_DEF].f;
+	return t[ID_DEF].next;
 }
 
 void	set_id_def(treenode* t, treenode* def) {
-	t[ID_DEF].f = def;
+	t[ID_DEF].next = def;
 }
 
 //class act_par: public expression {
@@ -795,11 +789,11 @@ void	set_id_def(treenode* t, treenode* def) {
 #define	SIZEOF_ACT_PAR	ACT_EXP+1
 
 treenode* get_act_exp(treenode* t) {
-	return t[ACT_EXP].f;
+	return t[ACT_EXP].next;
 }
 
 void	set_act_exp(treenode* t, treenode* exp) {
-	t[ACT_EXP].f = exp;
+	t[ACT_EXP].next = exp;
 }
 
 //class function_call: public expression {
@@ -817,27 +811,27 @@ void	set_act_exp(treenode* t, treenode* exp) {
 #define	SIZEOF_FUNCTION_CALL	NUM_OF_ACTUALS+1
 
 char* get_function_ident(treenode* t) {
-	return (char*)(t[FUNCTION_IDENT].f);
+	return (char*)(t[FUNCTION_IDENT].next);
 }
 
 void	set_function_ident(treenode* t, char* id) {
-	t[FUNCTION_IDENT].f = (treenode*)id;
+	t[FUNCTION_IDENT].next = (treenode*)id;
 }
 
 treenode* get_called_function(treenode* t) {
-	return t[CALLED_FUNCTION].f;
+	return t[CALLED_FUNCTION].next;
 }
 
-void	set_called_function(treenode* t, treenode* f) {
-	t[CALLED_FUNCTION].f = f;
+void	set_called_function(treenode* t, treenode* next) {
+	t[CALLED_FUNCTION].next = next;
 }
 
 treenode* get_actuals(treenode* t) {
-	return t[ACTUALS].f;
+	return t[ACTUALS].next;
 }
 
 void	set_actuals(treenode* t, treenode* a) {
-	t[ACTUALS].f = a;
+	t[ACTUALS].next = a;
 }
 
 int	get_num_of_actuals(treenode* t) {
@@ -863,27 +857,27 @@ void	set_num_of_actuals(treenode* t, int n) {
 #define	SIZEOF_INDEXING	NUM_OF_SUBSCRIPTS+1
 
 char* get_array_ident(treenode* t) {
-	return (char*)(t[ARRAY_IDENT].f);
+	return (char*)(t[ARRAY_IDENT].next);
 }
 
 void	set_array_ident(treenode* t, char* id) {
-	t[ARRAY_IDENT].f = (treenode*)id;
+	t[ARRAY_IDENT].next = (treenode*)id;
 }
 
 treenode* get_array_def(treenode* t) {
-	return t[ARRAY_DEF].f;
+	return t[ARRAY_DEF].next;
 }
 
 void	set_array_def(treenode* t, treenode* def) {
-	t[ARRAY_DEF].f = def;
+	t[ARRAY_DEF].next = def;
 }
 
 treenode* get_subscripts(treenode* t) {
-	return t[SUBSCRIPTS].f;
+	return t[SUBSCRIPTS].next;
 }
 
 void	set_subscripts(treenode* t, treenode* subs) {
-	t[SUBSCRIPTS].f = subs;
+	t[SUBSCRIPTS].next = subs;
 }
 
 int	get_num_of_subscripts(treenode* t) {
@@ -907,27 +901,27 @@ void	set_num_of_subscripts(treenode* t, int num) {
 #define	SIZEOF_CONDITIONAL	CONDITION_ELSEPART+1
 
 treenode* get_cond_of_condition(treenode* t) {
-	return t[COND_OF_CONDITION].f;
+	return t[COND_OF_CONDITION].next;
 }
 
 void	set_cond_of_condition(treenode* t, treenode* c) {
-	t[COND_OF_CONDITION].f = c;
+	t[COND_OF_CONDITION].next = c;
 }
 
 treenode* get_condition_thenpart(treenode* t) {
-	return t[CONDITION_THENPART].f;
+	return t[CONDITION_THENPART].next;
 }
 
 void	set_condition_thenpart(treenode* t, treenode* tp) {
-	t[CONDITION_THENPART].f = tp;
+	t[CONDITION_THENPART].next = tp;
 }
 
 treenode* get_condition_elsepart(treenode* t) {
-	return t[CONDITION_ELSEPART].f;
+	return t[CONDITION_ELSEPART].next;
 }
 
 void	set_condition_elsepart(treenode* t, treenode* ep) {
-	t[CONDITION_ELSEPART].f = ep;
+	t[CONDITION_ELSEPART].next = ep;
 }
 
 //class thunk: public declaration {
@@ -941,19 +935,19 @@ void	set_condition_elsepart(treenode* t, treenode* ep) {
 #define	SIZEOF_THUNK	THUNK_EXPR+1
 
 treenode* get_type_of_thunk(treenode* t) {
-	return t[TYPE_OF_THUNK].f;
+	return t[TYPE_OF_THUNK].next;
 }
 
 void	set_type_of_thunk(treenode* t, treenode* typ) {
-	t[TYPE_OF_THUNK].f = typ;
+	t[TYPE_OF_THUNK].next = typ;
 }
 
 treenode* get_thunk_expr(treenode* t) {
-	return t[THUNK_EXPR].f;
+	return t[THUNK_EXPR].next;
 }
 
 void	set_thunk_expr(treenode* t, treenode* te) {
-	t[THUNK_EXPR].f = te;
+	t[THUNK_EXPR].next = te;
 }
 
 //class variable: public declaration {
@@ -965,11 +959,11 @@ void	set_thunk_expr(treenode* t, treenode* te) {
 #define	SIZEOF_VARIABLE	TYPE_OF_VAR+1
 
 treenode* get_type_of_var(treenode* t) {
-	return t[TYPE_OF_VAR].f;
+	return t[TYPE_OF_VAR].next;
 }
 
 void	set_type_of_var(treenode* t, treenode* tt) {
-	t[TYPE_OF_VAR].f = tt;
+	t[TYPE_OF_VAR].next = tt;
 }
 
 //class label_decl: public declaration {
@@ -981,11 +975,11 @@ void	set_type_of_var(treenode* t, treenode* tt) {
 #define	SIZEOF_LABEL_DECL	VALUE_OF_LABEL+1
 
 treenode* get_value_of_label(treenode* t) {
-	return t[VALUE_OF_LABEL].f;
+	return t[VALUE_OF_LABEL].next;
 }
 
 void	set_value_of_label(treenode* t, treenode* v) {
-	t[VALUE_OF_LABEL].f = v;
+	t[VALUE_OF_LABEL].next = v;
 }
 
 //class param_decl: public declaration {
@@ -997,11 +991,11 @@ void	set_value_of_label(treenode* t, treenode* v) {
 #define	SIZEOF_PARAM_DECL	PARAM_TYPE+1
 
 treenode* get_param_type(treenode* t) {
-	return t[PARAM_TYPE].f;
+	return t[PARAM_TYPE].next;
 }
 
 void	set_param_type(treenode* t, treenode* pt) {
-	t[PARAM_TYPE].f = pt;
+	t[PARAM_TYPE].next = pt;
 }
 
 //class proc_decl: public declaration {
@@ -1029,51 +1023,51 @@ void	set_param_type(treenode* t, treenode* pt) {
 #define	SIZEOF_PROC_DECL	PROC_LEVEL+1
 
 treenode* get_proc_returntype(treenode* t) {
-	return t[PROC_RETURNTYPE].f;
+	return t[PROC_RETURNTYPE].next;
 }
 
 void	set_proc_returntype(treenode* t, treenode* type) {
-	t[PROC_RETURNTYPE].f = type;
+	t[PROC_RETURNTYPE].next = type;
 }
 
 treenode* get_proc_parameters(treenode* t) {
-	return t[PROC_PARAMETERS].f;
+	return t[PROC_PARAMETERS].next;
 }
 
 void	set_proc_parameters(treenode* t, treenode* par) {
-	t[PROC_PARAMETERS].f = par;
+	t[PROC_PARAMETERS].next = par;
 }
 
 treenode* get_proc_lastpar(treenode* t) {
-	return t[PROC_LASTPAR].f;
+	return t[PROC_LASTPAR].next;
 }
 
 void	set_proc_lastpar(treenode* t, treenode* lp) {
-	t[PROC_LASTPAR].f = lp;
+	t[PROC_LASTPAR].next = lp;
 }
 
 treenode* get_proc_body(treenode* t) {
-	return t[PROC_BODY].f;
+	return t[PROC_BODY].next;
 }
 
 void	set_proc_body(treenode* t, treenode* body) {
-	t[PROC_BODY].f = body;
+	t[PROC_BODY].next = body;
 }
 
 treenode* get_first_dec_in_proc(treenode* t) {
-	return t[FIRST_DEC_IN_PROC].f;
+	return t[FIRST_DEC_IN_PROC].next;
 }
 
 void	set_first_dec_in_proc(treenode* t, treenode* fd) {
-	t[FIRST_DEC_IN_PROC].f = fd;
+	t[FIRST_DEC_IN_PROC].next = fd;
 }
 
 treenode* get_last_dec_in_proc(treenode* t) {
-	return t[LAST_DEC_IN_PROC].f;
+	return t[LAST_DEC_IN_PROC].next;
 }
 
 void	set_last_dec_in_proc(treenode* t, treenode* ld) {
-	t[LAST_DEC_IN_PROC].f = ld;
+	t[LAST_DEC_IN_PROC].next = ld;
 }
 
 int	get_blockno_of_proc(treenode* t) {
@@ -1113,19 +1107,19 @@ void	set_proc_level(treenode* t, int l) {
 #define	SIZEOF_BLOCK	BLOCK_NUMBER+1
 
 treenode* get_block_decls(treenode* t) {
-	return t[BLOCK_DECLS].f;
+	return t[BLOCK_DECLS].next;
 }
 
 void	set_block_decls(treenode* t, treenode* bd) {
-	t[BLOCK_DECLS].f = bd;
+	t[BLOCK_DECLS].next = bd;
 }
 
 treenode* get_last_block_decl(treenode* t) {
-	return t[LAST_BLOCK_DECL].f;
+	return t[LAST_BLOCK_DECL].next;
 }
 
 void	set_last_block_decl(treenode* t, treenode* lbd) {
-	t[LAST_BLOCK_DECL].f = lbd;
+	t[LAST_BLOCK_DECL].next = lbd;
 }
 
 int	get_block_number(treenode* t) {
@@ -1155,19 +1149,19 @@ void	set_block_number(treenode* t, int bn) {
 #define	SIZEOF_SUBTYPE	SUBTYPE_DIMS+1
 
 treenode* get_basetype(treenode* t) {
-	return t[BASETYPE].f;
+	return t[BASETYPE].next;
 }
 
 void	set_basetype(treenode* t, treenode* bt) {
-	t[BASETYPE].f = bt;
+	t[BASETYPE].next = bt;
 }
 
 treenode* get_subtype_bounds(treenode* t) {
-	return t[SUBTYPE_BOUNDS].f;
+	return t[SUBTYPE_BOUNDS].next;
 }
 
 void	set_subtype_bounds(treenode* t, treenode* sb) {
-	t[SUBTYPE_BOUNDS].f = sb;
+	t[SUBTYPE_BOUNDS].next = sb;
 }
 
 int	get_subtype_dims(treenode* t) {
@@ -1187,11 +1181,11 @@ void	set_subtype_dims(treenode* t, int dims) {
 #define	SIZEOF_SINGLE_FOR_ELEMENT	SINGLE_EXPR+1
 
 treenode* get_single_expr(treenode* t) {
-	return t[SINGLE_EXPR].f;
+	return t[SINGLE_EXPR].next;
 }
 
 void	set_single_expr(treenode* t, treenode* se) {
-	t[SINGLE_EXPR].f = se;
+	t[SINGLE_EXPR].next = se;
 }
 
 //class while_element: public for_element {
@@ -1205,19 +1199,19 @@ void	set_single_expr(treenode* t, treenode* se) {
 #define	SIZEOF_WHILE_ELEMENT	WHILE_CONDITION+1
 
 treenode* get_while_init(treenode* t) {
-	return t[WHILE_INIT].f;
+	return t[WHILE_INIT].next;
 }
 
 void	set_while_init(treenode* t, treenode* wi) {
-	t[WHILE_INIT].f = wi;
+	t[WHILE_INIT].next = wi;
 }
 
 treenode* get_while_condition(treenode* t) {
-	return t[WHILE_CONDITION].f;
+	return t[WHILE_CONDITION].next;
 }
 
 void	set_while_condition(treenode* t, treenode* wc) {
-	t[WHILE_CONDITION].f = wc;
+	t[WHILE_CONDITION].next = wc;
 }
 
 //class step_until: public for_element {
@@ -1233,27 +1227,27 @@ void	set_while_condition(treenode* t, treenode* wc) {
 #define	SIZEOF_STEP_UNTIL	UNTIL_EXPRESSION+1
 
 treenode* get_step_init(treenode* t) {
-	return t[STEP_INIT].f;
+	return t[STEP_INIT].next;
 }
 
 void	set_step_init(treenode* t, treenode* si) {
-	t[STEP_INIT].f = si;
+	t[STEP_INIT].next = si;
 }
 
 treenode* get_incr_expression(treenode* t) {
-	return t[INCR_EXPRESSION].f;
+	return t[INCR_EXPRESSION].next;
 }
 
 void	set_incr_expression(treenode* t, treenode* ie) {
-	t[INCR_EXPRESSION].f = ie;
+	t[INCR_EXPRESSION].next = ie;
 }
 
 treenode* get_until_expression(treenode* t) {
-	return t[UNTIL_EXPRESSION].f;
+	return t[UNTIL_EXPRESSION].next;
 }
 
 void	set_until_expression(treenode* t, treenode* ue) {
-	t[UNTIL_EXPRESSION].f = ue;
+	t[UNTIL_EXPRESSION].next = ue;
 }
 
 //class for_statement: public statement {
@@ -1269,27 +1263,27 @@ void	set_until_expression(treenode* t, treenode* ue) {
 #define	SIZEOF_FOR_STATEMENT	FOR_EL_LIST+1
 
 treenode* get_for_var(treenode* t) {
-	return t[FOR_VAR].f;
+	return t[FOR_VAR].next;
 }
 
 void	set_for_var(treenode* t, treenode* fv) {
-	t[FOR_VAR].f = fv;
+	t[FOR_VAR].next = fv;
 }
 
 treenode* get_for_body(treenode* t) {
-	return t[FOR_BODY].f;
+	return t[FOR_BODY].next;
 }
 
 void	set_for_body(treenode* t, treenode* fb) {
-	t[FOR_BODY].f = fb;
+	t[FOR_BODY].next = fb;
 }
 
 treenode* get_for_el_list(treenode* t) {
-	return t[FOR_EL_LIST].f;
+	return t[FOR_EL_LIST].next;
 }
 
 void	set_for_el_list(treenode* t, treenode* fel) {
-	t[FOR_EL_LIST].f = fel;
+	t[FOR_EL_LIST].next = fel;
 }
 
 //class switch_decl: public declaration {
@@ -1303,11 +1297,11 @@ void	set_for_el_list(treenode* t, treenode* fel) {
 #define	SIZEOF_SWITCH_DECL	NUM_OF_SWITCH_ELEMENTS+1
 
 treenode* get_switchlist(treenode* t) {
-	return t[SWITCHLIST].f;
+	return t[SWITCHLIST].next;
 }
 
 void	set_switchlist(treenode* t, treenode* sl) {
-	t[SWITCHLIST].f = sl;
+	t[SWITCHLIST].next = sl;
 }
 
 int	get_num_of_switch_elements(treenode* t) {
@@ -1373,7 +1367,7 @@ int	get_sizeof(int nodeid) {
 
 treenode* new_node(int id, int l, int cn) {
 	treenode* t;
-	int i;
+	//int i;
 	t = (treenode*)malloc(get_sizeof(id) * sizeof(treenode*));
 	if (t == 0) return 0;
 	memset(t, 0, get_sizeof(id) * sizeof(treenode*));
@@ -1384,8 +1378,8 @@ treenode* new_node(int id, int l, int cn) {
 }
 
 
-void	compile(char* src_name) {
-	char	v[1024];
+void compile(char* src_name) {
+	//char	v[1024];
 	//treenode* dummy;
 	treenode* environment;
 	treenode* st;
@@ -1416,7 +1410,7 @@ void	compile(char* src_name) {
 		exit(EXIT_FAILURE);
 	}
 
-	if (include_file == (char*)0)
+	if (include_file == NULL)
 		f_out = stderr;
 	else
 		if ((f_out = fopen(include_file, "w")) == NULL) {
@@ -1429,13 +1423,13 @@ void	compile(char* src_name) {
 	generate_kop(f_out, infile, HEADER, compile_time);
 
 	//	then the global specifications for the include file
-	generate_headers(get_first_in_globals(globals));
+	generate_headers(get_first_in_globals(globals_ptr));
 
 	//	now close the ".h" file and continue with the ".c" file
-	if (include_file != (char*)0)
+	if (include_file != NULL)
 		fclose(f_out);
 
-	if (c_file == (char*)0)
+	if (c_file == NULL)
 		f_out = stderr;
 	else
 		if ((f_out = fopen(c_file, "w")) == NULL) {
@@ -1445,8 +1439,8 @@ void	compile(char* src_name) {
 
 	//	then the global declarations and the main program
 	generate_kop(f_out, infile, include_file, compile_time);
-	generate_elab_code(globals->first, environment);
-	if (c_file != (char*)0)
+	generate_elab_code(globals_ptr->first, environment);
+	if (c_file != NULL)
 		fclose(f_out);
 }
 
@@ -2074,7 +2068,7 @@ void	init_English_keywords() {
 }
 
 void	init_keywords() {
-	if (languageFlag == 0)
+	if (language_flag == 0)
 		init_English_keywords();
 	else
 		init_French_keywords();
@@ -2216,7 +2210,7 @@ char* Read_String() {
 int	Read_Number(char** r) {
 	char temp[MAX_NUMBER_SIZE];
 	int i = 0;
-	char* s;
+	//char* s;
 	int state = 1;
 
 	while (Is_Digit(ch)) {
@@ -2261,14 +2255,14 @@ state_5: temp[i++] = 'E';
 	}
 	if (!Is_Digit(ch)) goto state_error;
 
-state_7:
+	//state_7:
 	while (Is_Digit(ch)) {
-	temp[i++] = ch;
-	get_scannerchar();
-}
-temp[i] = (char)0;
-*r = store_in_tree(temp);
-return S_RNUMBER;
+		temp[i++] = ch;
+		get_scannerchar();
+	}
+	temp[i] = (char)0;
+	*r = store_in_tree(temp);
+	return S_RNUMBER;
 
 state_error: return S_ERROR;
 }
@@ -2276,7 +2270,7 @@ state_error: return S_ERROR;
 //	we allow C like specifications such as \043 as character
 //	in the denotation
 char	Read_Octal() {
-	char c1;
+	//char c1;
 	int  res;
 
 	if (!Is_Octal_Digit(ch)) {
@@ -2541,7 +2535,7 @@ void next_symbol(struct symbol* s) {
 	}
 }
 
-void init_scanner(char* f) {
+void init_scanner(char* next) {
 	static int cnt = 0;
 
 	if (fin != NULL)
@@ -2550,13 +2544,13 @@ void init_scanner(char* f) {
 	lineno = 1;
 	charno = 1;
 	ch = 0;
-	fin = fopen(f, "r");
+	fin = fopen(next, "r");
 	if (fin == NULL) {
-		fprintf(stderr, "Fatal: cannot open file %s\n", f);
+		fprintf(stderr, "Fatal: cannot open file %s\n", next);
 		exit(EXIT_FAILURE);
 	}
 
-	current_file = f;
+	current_file = next;
 	if (cnt++ == 0) {
 		init_keywords();
 	}
@@ -2725,7 +2719,7 @@ treenode* parse_primary(struct symbol* s) {
 }
 
 treenode* parse_expression(int binary_priority, struct symbol* s) {
-	treenode* h1, * h, * t, * t2;
+	treenode* h1, * h, * t;// , * t2;
 
 	if (binary_priority > max_prio)
 		return parse_primary(s);
@@ -3015,7 +3009,7 @@ int	param_separator(struct symbol* s) {
 //	recognize and process id {SEPARATOR id}*
 //	and process them as parameters
 void	parse_params(treenode* p, struct symbol* s) {
-	struct symbol la;
+	//struct symbol la;
 	// we assume we start with an ident
 	parse_param(p, s);
 	// here an ugly separator may appear
@@ -3249,7 +3243,7 @@ int	parse_decl(treenode* b, struct symbol* s, int p) {
 //	[basic type] {array_declaration | proc declaration} |
 //	switch id := expression {, expression_list}
 void	parse_non_own_declaration(treenode* b, struct symbol* s, int p, int is_own) {
-	treenode* t, * d;
+	treenode* t;// , * d;
 
 	switch (symbol_value(s)) {
 	case S_BASICTYPE: // this is the complex one
@@ -3333,7 +3327,7 @@ void	parse_decls(treenode* b, struct symbol* s, int p) {
 //
 //	stat {; stat} *
 void	parse_stats(treenode* e, treenode* b, struct symbol* s) {
-	treenode* t1;
+	//treenode* t1;
 
 	parse_stat(e, b, s);
 	while (symbol_value(s) == S_SEMI) {
@@ -3410,7 +3404,7 @@ treenode* parse_assignmentrhs(struct symbol* s) {
 //	labels are especially awful,
 //	labels are linked to empty statements in the tree
 treenode* parse_id_as_stat(treenode* env, treenode* b, struct symbol* s) {
-	treenode* l, * d, * exp, * f;
+	treenode* l, * exp, * next;
 	char* ident = symbol_repr(s);
 	int  lineno = symbol_lineno(s);
 	int  charno = symbol_charno(s);
@@ -3428,13 +3422,13 @@ treenode* parse_id_as_stat(treenode* env, treenode* b, struct symbol* s) {
 		add_entry(l, get_decl_ident(l));
 		set_decl_env(l, b);
 		link_in_front_to(b, l);
-		f = new_node(NULL_STAT, symbol_lineno(s), symbol_charno(s));
-		set_label(f, l);
-		set_value_of_label(l, f);
-		link_statement(env, f);
+		next = new_node(NULL_STAT, symbol_lineno(s), symbol_charno(s));
+		set_label(next, l);
+		set_value_of_label(l, next);
+		link_statement(env, next);
 		next_symbol(s);
 		parse_stat(env, b, s);
-		return f;
+		return next;
 
 	case S_LPAR:  // It is a procedure call with parameters
 		exp = parse_functioncall(s, lineno, charno, ident);
@@ -3447,25 +3441,25 @@ treenode* parse_id_as_stat(treenode* env, treenode* b, struct symbol* s) {
 			return (treenode*)0;
 
 		next_symbol(s);
-		f = parse_assignmentrhs(s);
-		set_lhs_expression(f, exp);
-		link_statement(env, f);
-		return f;
+		next = parse_assignmentrhs(s);
+		set_lhs_expression(next, exp);
+		link_statement(env, next);
+		return next;
 
 	case S_ASSIGN:
 		exp = new_node(ID_AS_PRIM, symbol_lineno(s), symbol_charno(s));
 		set_resolve_ident(exp, ident);
 		next_symbol(s);
-		f = parse_assignmentrhs(s);
-		set_lhs_expression(f, exp);
-		link_statement(env, f);
-		return f;
+		next = parse_assignmentrhs(s);
+		set_lhs_expression(next, exp);
+		link_statement(env, next);
+		return next;
 
 	default: // it must be a parameterless call
-		f = new_node(FUNCTION_CALL, lineno, charno);
-		set_function_ident(f, ident);
-		link_statement(env, f);
-		return f;
+		next = new_node(FUNCTION_CALL, lineno, charno);
+		set_function_ident(next, ident);
+		link_statement(env, next);
+		return next;
 	}
 }
 
@@ -3551,7 +3545,7 @@ treenode* parse_block_or_compound(treenode* e, treenode* b, struct symbol* s) {
 
 //	if  expression then statement [else statement]
 treenode* parse_if_stat(treenode* e, treenode* b, struct symbol* s) {
-	treenode* t1, * t2, * t3;
+	treenode* t1;// , * t2, * t3;
 	treenode* b2;
 
 	t1 = new_node(IF_STAT, symbol_lineno(s), symbol_charno(s));
@@ -4003,7 +3997,7 @@ treenode* analyse_indexing_as_lhs(treenode* environment, treenode* lhs) {
 }
 
 treenode* analyse_lhs(treenode* e, treenode* lhs) {
-	treenode* d;
+	//treenode* d;
 
 	switch (get_nodeid(lhs)) {
 	case ID_AS_PRIM:
@@ -4025,41 +4019,41 @@ void	analyse_assignment(treenode* e, treenode* as) {
 }
 //
 //	b is env, t = context type, f is function call, ct is "in context"
-void	analyse_functioncall(treenode* b, treenode* t, treenode* f, int ct) {
+void	analyse_functioncall(treenode* b, treenode* t, treenode* next, int ct) {
 	treenode* fn;
 
-	fn = look_for_good_entity(b, get_function_ident(f), f);
+	fn = look_for_good_entity(b, get_function_ident(next), next);
 	if (fn == (treenode*)0) {
-		set_error(f);
+		set_error(next);
 		return;
 	}
 
-	set_called_function(f, fn);
+	set_called_function(next, fn);
 	if (!has_a_proc_type(fn)) {
-		sem_error(get_lineno(f), "call to non-proc/function %s\n",
+		sem_error(get_lineno(next), "call to non-proc/function %s\n",
 			get_decl_ident(fn), "");
-		set_error(f);
+		set_error(next);
 		return;
 	}
 
 	//	check the return type
 	if (!is_compatible(t, result_type(fn))) {
-		sem_error(get_lineno(f),
+		sem_error(get_lineno(next),
 			"function call to %s has incompatible type\n",
 			get_decl_ident(fn), "");
-		set_error(f);
+		set_error(next);
 		return;
 	}
 
 	// Now we are sure it is a function, differentiate between parameter and not
 	// we mark the procedure as "used" only if it is a non-recursive call
 	if (!is_parameter(fn)) {
-		analyse_parameters(b, fn, f, TRUE);
+		analyse_parameters(b, fn, next, TRUE);
 		set_access(fn, b, ct);
 	}
 	else   // it is a parameter, we know nothing
-		analyse_unspecified_actuals(b, fn, f, TRUE);
-	set_expr_type(f, result_type(fn));
+		analyse_unspecified_actuals(b, fn, next, TRUE);
+	set_expr_type(next, result_type(fn));
 }
 
 void	analyse_parameters(treenode* b, treenode* p, treenode* pd, int ct) {
@@ -4119,7 +4113,7 @@ void	actual_is_thunk(treenode* b, treenode* ap, treenode* fp, int ct) {
 //	the actual parameter is an identifier (formal or variable)
 //	indicating an array or a switch
 void	actual_is_array_id(treenode* b, treenode* ap, treenode* fp, treenode* def, int ct) {
-	treenode* th, * exp, * type_of_fp;
+	treenode* exp, * type_of_fp;
 
 	exp = get_act_exp(ap);
 	type_of_fp = (fp == (treenode*)0) ? any_type : type_of(fp);
@@ -4164,7 +4158,7 @@ void	actual_is_array_id(treenode* b, treenode* ap, treenode* fp, treenode* def, 
 //	the actual is an id indicating a string
 //	should be a parameter
 void	actual_is_string_id(treenode* b, treenode* ap, treenode* fp, treenode* def, int ct) {
-	treenode* th, * exp, * type_of_fp;
+	treenode* exp, * type_of_fp;
 
 	exp = get_act_exp(ap);
 	type_of_fp = (fp == (treenode*)0) ? any_type : type_of(fp);
@@ -4188,7 +4182,7 @@ void	actual_is_string_id(treenode* b, treenode* ap, treenode* fp, treenode* def,
 //	Notice, id is NOT a formal parameter, it is a proc_decl
 //
 void	actual_is_function_id(treenode* b, treenode* ap, treenode* fp, treenode* def, int ct) {
-	treenode* th, * exp, * type_of_fp;
+	treenode* exp, * type_of_fp;
 
 	exp = get_act_exp(ap);
 	type_of_fp = (fp == (treenode*)0) ? any_type : type_of(fp);
@@ -4232,7 +4226,7 @@ void	actual_is_function_id(treenode* b, treenode* ap, treenode* fp, treenode* de
 //	The remainder, the actual is just a variable id (param may be)
 //	or a label
 void	actual_is_plain_id(treenode* b, treenode* ap, treenode* fp, treenode* def, int ct) {
-	treenode* th, * exp, * type_of_fp;
+	treenode* exp, * type_of_fp;
 
 	exp = get_act_exp(ap);
 	type_of_fp = (fp == (treenode*)0) ? any_type : type_of(fp);
@@ -4255,7 +4249,7 @@ void	actual_is_plain_id(treenode* b, treenode* ap, treenode* fp, treenode* def, 
 //
 void	analyse_actual_parameter(treenode* b, treenode* p, treenode* fp, treenode* ap, int ct)
 {
-	treenode* th, * exp, * def, * type_of_fp;
+	treenode* exp, * def, * type_of_fp;
 
 	exp = get_act_exp(ap);
 	type_of_fp = (fp == (treenode*)0) ? any_type : type_of(fp);
@@ -4358,17 +4352,17 @@ void	analyse_forelement(treenode* b, treenode* t, treenode* fe) {
 	//	that's it, we cannot be here
 }
 
-void	analyse_forstat(treenode* b, treenode* f) {
-	treenode* for_el = get_for_el_list(f);
+void	analyse_forstat(treenode* b, treenode* next) {
+	treenode* for_el = get_for_el_list(next);
 	treenode* t;
 
-	t = analyse_lhs(b, get_for_var(f));
+	t = analyse_lhs(b, get_for_var(next));
 	while (for_el != ((treenode*)0)) {
 		analyse_forelement(b, t, for_el);
 		for_el = get_nextnode(for_el);
 	}
 
-	analyse(b, get_for_body(f));
+	analyse(b, get_for_body(next));
 }
 
 //
@@ -4581,7 +4575,7 @@ void	analyse_binary_expression(treenode* b, treenode* t, treenode* exp, int ct) 
 //	contexts, and mark them as "far away" labels
 //
 void	analyse_expression(treenode* b, treenode* t, treenode* exp, int ct) {
-	treenode* def;
+	//treenode* def;
 
 	if (exp == (treenode*)0)
 		return;
@@ -4851,7 +4845,7 @@ void	generate_c_spec(treenode* p) {
 //	The specification of a jff_ ALGOL procedure. A procedure is mapped
 //	onto an implementing C procedure
 void	generate_spec_for_jff_type_proc(treenode* p) {
-	int	i;
+	//int	i;
 
 	generate_c_spec(p);
 	add_to_output("struct ");
@@ -5451,7 +5445,7 @@ void	init_parameter_in_ar(treenode* p, treenode* fp) {
 }
 
 void	generate_var_spec(treenode* d) {
-	int	i;
+	//int	i;
 	treenode* st;
 	treenode* bnd;
 
@@ -5494,7 +5488,7 @@ void	generate_var_spec(treenode* d) {
 //
 //	declaration code for "d" in proc "p"
 void	generate_var_decl(treenode* p, treenode* d) {
-	int	i;
+	//int	i;
 	treenode* st;
 	treenode* bnd;
 
@@ -6143,7 +6137,7 @@ void	pr_data_for_hard_param(char t, char k) {
 //	are thunk, array, switch, proc, string or other parameter
 void	hard_parameter(treenode* p, treenode* e, int i) {
 	treenode* def;
-	char* t;
+	//char* t;
 
 	switch (get_nodeid(e)) {
 	case ID_AS_PRIM:
@@ -6530,7 +6524,7 @@ void	increment_code(treenode* p, treenode* lhs, treenode* incr) {
 }
 
 void	generate_block_code(treenode* p, treenode* b) {
-	treenode* t;
+	//treenode* t;
 
 	if (get_block_decls(b) == (treenode*)0) {
 		statement_code(p, get_statements(b));
@@ -6693,14 +6687,14 @@ void	ith_lower_bound(treenode* p, int cb, treenode* d) {
 	code_for_expression(p, get_first_bound(current_bnd), int_type);
 }
 
-void	generate_for_stat(treenode* p, treenode* f) {
+void	generate_for_stat(treenode* p, treenode* next) {
 	treenode* for_el_list;
 	treenode* control_var;
 
-	for_el_list = get_for_el_list(f);
-	control_var = get_for_var(f);
+	for_el_list = get_for_el_list(next);
+	control_var = get_for_var(next);
 	while (for_el_list != (treenode*)0) {
-		generate_for_element(p, control_var, for_el_list, get_for_body(f));
+		generate_for_element(p, control_var, for_el_list, get_for_body(next));
 		for_el_list = get_nextnode(for_el_list);
 	}
 }
@@ -6917,13 +6911,13 @@ void	link_in_front_to(treenode* e, treenode* n) {
 //	global declarations in the C program
 void	link_to_globals(treenode* d) {
 
-	if (get_first_in_globals(globals) == (treenode*)0) {
-		set_first_in_globals(globals, d);
-		set_last_in_globals(globals, d);
+	if (get_first_in_globals(globals_ptr) == (treenode*)0) {
+		set_first_in_globals(globals_ptr, d);
+		set_last_in_globals(globals_ptr, d);
 	}
 	else {
-		set_next_dec(get_last_in_globals(globals), d);
-		set_last_in_globals(globals, d);
+		set_next_dec(get_last_in_globals(globals_ptr), d);
+		set_last_in_globals(globals_ptr, d);
 	}
 }
 //
@@ -7043,7 +7037,7 @@ char* op_name(treenode* op) {
 void	set_access(treenode* d, treenode* b, int ct) {
 	treenode* decl_env;
 	treenode* curr_env;
-	treenode* st;
+	//treenode* st;
 
 	ASSERT((d != (treenode*)0), ("Expert error 26\n"));
 	if (get_nodeid(d) == PROC_DECL)	// special treatment
@@ -7238,14 +7232,14 @@ char* c_nameof(treenode* d) {
 		if (is_cproc(d))
 			return get_decl_ident(d);
 
-		if (get_c_name(d) == (char*)0) {
+		if (get_c_name(d) == NULL) {
 			sprintf(v, "_%s_%d", get_decl_ident(d), block_of(d));
 			set_c_name(d, store_in_tree(v));
 		}
 		return get_c_name(d);
 
 	case SUBTYPE:
-		if (get_c_name(d) == (char*)0) {
+		if (get_c_name(d) == NULL) {
 			sprintf(v, "__dv%d", count++);
 			set_c_name(d, store_in_tree(v));
 		}
@@ -7639,13 +7633,13 @@ char* new_for_id(treenode* b) {
 //
 //	make a call to p in environment of block b
 treenode* make_proc_call(treenode* b, treenode* p) {
-	treenode* f;
-	f = new_node(FUNCTION_CALL, 0, 0);
-	set_function_ident(f, get_decl_ident(p));
-	set_actuals(f, (treenode*)0);
-	set_called_function(f, p);
-	set_expr_type(f, void_type);
-	return f;
+	treenode* next;
+	next = new_node(FUNCTION_CALL, 0, 0);
+	set_function_ident(next, get_decl_ident(p));
+	set_actuals(next, (treenode*)0);
+	set_called_function(next, p);
+	set_expr_type(next, void_type);
+	return next;
 }
 
 //
@@ -8177,11 +8171,11 @@ struct X_block* X_extend(struct X_array* a, int index) {
 
 char* my_element(struct X_array* a, int index) {
 	struct X_block* segment;
-	struct X_block* f = a->first_block;
-	while (f != (struct X_block*)0) {
-		if (f->lwb <= index && index <= f->upb)
-			return  &(f->data[(index - f->lwb) * a->el_size]);
-		f = f->next;
+	struct X_block* next = a->first_block;
+	while (next != (struct X_block*)0) {
+		if (next->lwb <= index && index <= next->upb)
+			return  &(next->data[(index - next->lwb) * a->el_size]);
+		next = next->next;
 	}
 	segment = X_extend(a, index);
 	return &(segment->data[(index - segment->lwb) * a->el_size]);

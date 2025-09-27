@@ -60,7 +60,7 @@ int	indent = 1;
 int	delete_files = 0;
 int	trace = 0;
 int	only_frontend = 0;
-int	languageFlag = 0;
+int	language_flag = 0;
 
 static	char v0[256];
 static char	v1[256];
@@ -108,7 +108,7 @@ void process_file() {
 
 	sprintf(v, " %s -F %d -c %s -f %s -o %s -p %s -h %s -t \"%s\" %s",
 		jff_a2c,
-		languageFlag,
+		language_flag,
 		tmp_file,
 		include,
 		operator,
@@ -166,7 +166,7 @@ int main(int argc, char** argv) {
 
 			case 'F':	operator	= OPERATOR_F;
 				prelude = PRELUDE_F;
-				languageFlag = 1;
+				language_flag = 1;
 				break;
 
 			case 'p':	prelude = argv[i + 1]; i++;
