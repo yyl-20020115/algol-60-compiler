@@ -1,13 +1,10 @@
-#
-
 /* jff_algol (Jan van Katwijk) */
 /* Version 2.1.4		*/
 /* input file: bairstow-f.alg		*/
 /* Compiled at Wed Sep 18 13:37:20 2019		*/
 
-
 #include	<stdio.h>
-#include "/usr/local/include/jff_header.h"
+#include "jff_header.h"
 /* Headers		*/
 extern	double fabs (double); /* fabs declared at line 2*/
 extern	double _ABS_4 (double); /* ABS declared at line 3*/

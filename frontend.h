@@ -1,4 +1,3 @@
-#
 //
 //	jff_a2c
 //	a simple translator from Algol 60 to plain C
@@ -36,18 +35,36 @@
 //
 #include	<stdlib.h>
 #include	<stdio.h>
+#ifndef _WIN32
 #include	<unistd.h>
-#
+#endif
+#include "defs.h"
 
 //typedef char * treenode;
 struct  flub {
-   struct flub *f;
+	union {
+		struct flub* f;
+		unsigned int flags;
+		int proc_level;
+		int pars_count;
+		int block_number;
+		int block_number_proc;
+		int subscripts_count;
+		int actuals;
+		int binary_priority;
+		int unary_priority;
+		int line_number;
+		int char_number;
+		int switch_count;
+		int subtype_dims;
+		int node_id;
+	};
 };
 typedef struct flub  treenode;
 
 struct string_element {
-	struct string_element *left, *right;
-	char string_value [1];
+	struct string_element* left, * right;
+	char string_value[1];
 };
 
 #define	TRUE	1
@@ -81,7 +98,7 @@ struct string_element {
 #define S_TRUE		29
 #define S_UNTIL		30
 #define S_VALUE		31
-//#define S_VIRTUAL	32
+ //#define S_VIRTUAL	32
 #define S_WHILE		33
 #define S_EOF		34
 #define S_COMMENT	35
@@ -160,24 +177,25 @@ struct string_element {
 /*
  * The scanner defines
  */
-struct symbol {int sym_value;
-               char *sym_rep;
-               int lineno;
-               int charno;
-              };
+struct symbol {
+	int sym_value;
+	char* sym_rep;
+	int lineno;
+	int charno;
+};
 
 extern	int		print_prelude;
 extern	int		print_trace;
 extern	int		delete_files;
 extern	int		scanner_trace;
-extern	treenode	*int_type;
-extern	treenode	*real_type;
-extern	treenode	*bool_type;
-extern	treenode	*void_type;
-extern	treenode	*any_type;
-extern	treenode	*string_type;
-extern	treenode	*lab_type;
-extern	treenode	*error_type;
+extern	treenode* int_type;
+extern	treenode* real_type;
+extern	treenode* bool_type;
+extern	treenode* void_type;
+extern	treenode* any_type;
+extern	treenode* string_type;
+extern	treenode* lab_type;
+extern	treenode* error_type;
 extern	int		max_prio;
 extern	int		errors;
 extern	int		sem_errors;
@@ -206,8 +224,8 @@ extern	int	program_needs_deallocation;
 #define	ASSERT(x, y)	if (!x) { fprintf (stderr, y); abort (); }
 
 #define	DOPE_BASE	2
-extern	FILE	*f_out;
-extern	char	*current_file;
+extern	FILE* f_out;
+extern	char* current_file;
 
 #define	symbol_value(x)		(x -> sym_value)
 #define	symbol_repr(x)		(x -> sym_rep)
@@ -215,7 +233,7 @@ extern	char	*current_file;
 #define	symbol_charno(x)	(x -> charno)
 
 struct glob_list {
-	treenode *first, *last;
+	treenode* first, * last;
 };
 
 #define	set_first_in_globals(x, y)	x -> first = y
@@ -223,7 +241,7 @@ struct glob_list {
 #define	set_last_in_globals(x, y)	x -> last = y
 #define	get_last_in_globals(x)		x -> last
 
-extern	struct glob_list	*globals;
+extern	struct glob_list* globals;
 //	functions and constants
 //
 //	all functions defined in the file compiler.c are specified
@@ -231,330 +249,330 @@ extern	struct glob_list	*globals;
 //
 //	First functions for the read_prelude operation
 //
-void	compile (char *src_name);
+void	compile(char* src_name);
 //
 //	functions for prelude manipulation
 //
-treenode *read_type  (struct symbol *);
-treenode *read_types (struct symbol *);
-treenode *get_type (char *);
-treenode *get_internal_type (char *);
-treenode *get_arraytype (treenode *);
-treenode *get_proctype (treenode *);
-treenode *get_labeltype ();
-treenode *read_bin_param  (struct symbol *);
-treenode *read_bin_params (struct symbol *);
-treenode *read_binary (struct symbol *);
-treenode *read_binaries (struct symbol *);
-treenode *get_binoperator (int, char *);
-treenode *get_bdef (treenode *, treenode *, treenode *);
-treenode *read_un_param  (struct symbol *);
-treenode *read_un_params (struct symbol *);
-treenode *read_unary (struct symbol *);
-treenode *read_unaries (struct symbol *);
-treenode *get_unoperator (int, char *);
-treenode *get_udef (treenode *, treenode *);
-void	read_prelude (struct symbol *);
+treenode* read_type(struct symbol*);
+treenode* read_types(struct symbol*);
+treenode* get_type(char*);
+treenode* get_internal_type(char*);
+treenode* get_arraytype(treenode*);
+treenode* get_proctype(treenode*);
+treenode* get_labeltype();
+treenode* read_bin_param(struct symbol*);
+treenode* read_bin_params(struct symbol*);
+treenode* read_binary(struct symbol*);
+treenode* read_binaries(struct symbol*);
+treenode* get_binoperator(int, char*);
+treenode* get_bdef(treenode*, treenode*, treenode*);
+treenode* read_un_param(struct symbol*);
+treenode* read_un_params(struct symbol*);
+treenode* read_unary(struct symbol*);
+treenode* read_unaries(struct symbol*);
+treenode* get_unoperator(int, char*);
+treenode* get_udef(treenode*, treenode*);
+void	read_prelude(struct symbol*);
 //
 //	functions for the scanner
 //
-void	get_char ();
-int	is_blank (int ch);
-void	get_nonblank ();
-void	get_scannerchar ();
-int	convert_to_ivalue (char *);
-char	*convert_char_to_int (char);
-int	Is_Letter (char);
-int	Is_Digit (char);
-int	Is_Octal_Digit (char);
-void	add_keyword (int, char *);
-void	init_keywords ();
-int	equal_string (char *, char *);
-int	Lookup (char *);
-int	length (char *);
-int	compare (char *, struct string_element *);
-struct string_element *init_element (char *);
-char	*store_in_tree (char *);
-char	*Read_Identifier ();
-int	Read_Stropped (char **);
-char	*Read_String ();
-int	Read_Number (char **);
-char	Read_Octal ();
-char	Read_Escaped_Char ();
-void	next_algol_token (struct symbol *);
-int	ends_comment_after_end (int);
-void	peek_ahead (struct symbol **);
-void	next_symbol (struct symbol *);
-void	init_scanner (char *);
-void	skip_until (int, struct symbol *);
-int	check_for (int, int, struct symbol *);
+void	get_char();
+int	is_blank(int ch);
+void	get_nonblank();
+void	get_scannerchar();
+int	convert_to_ivalue(char*);
+char* convert_char_to_int(char);
+int	Is_Letter(char);
+int	Is_Digit(char);
+int	Is_Octal_Digit(char);
+void	add_keyword(int, char*);
+void	init_keywords();
+int	equal_string(char*, char*);
+int	Lookup(char*);
+int	length(char*);
+int	compare(char*, struct string_element*);
+struct string_element* init_element(char*);
+char* store_in_tree(char*);
+char* Read_Identifier();
+int	Read_Stropped(char**);
+char* Read_String();
+int	Read_Number(char**);
+char	Read_Octal();
+char	Read_Escaped_Char();
+void	next_algol_token(struct symbol*);
+int	ends_comment_after_end(int);
+void	peek_ahead(struct symbol**);
+void	next_symbol(struct symbol*);
+void	init_scanner(char*);
+void	skip_until(int, struct symbol*);
+int	check_for(int, int, struct symbol*);
 //
 //	parser functions
 //
-treenode *parse_primary (struct symbol *);
-treenode *parse_expression (int, struct symbol *);
-int	starts_decl (struct symbol *);
-void	parse_switch_declaration (treenode *, treenode *, struct symbol *);
-void	parse_simdecl (treenode *, treenode *, struct symbol *, int);
-void	parse_simdecls (treenode *, treenode *, struct symbol *, int);
-treenode *parse_bounds (struct symbol *);
-void	parse_array_ident  (treenode *, treenode *st, struct symbol *, int);
-void	parse_array_identifiers (treenode *, treenode *st, struct symbol * s, int);
-void	parse_arraydecl (treenode *, treenode *el_type, struct symbol *, int);
-void	parse_arraydecls (treenode *, treenode *, struct symbol *, int);
-void	parse_value_ids (treenode *, struct symbol *);
-void	parse_value_id  (treenode *, struct symbol *);
-int	param_separator (struct symbol *);
-void	parse_params (treenode *, struct symbol *);
-void	parse_param  (treenode *, struct symbol *);
-void	parse_parspec (treenode *, treenode* , struct symbol *);
-void	parse_parspecs (treenode *, treenode *, struct symbol *);
-void	parse_param_spec (treenode *, struct symbol *);
-void	parse_param_specs (treenode *, struct symbol *);
-void	parse_procdecl (treenode *, treenode *, struct symbol *, int);
-int	parse_decl (treenode *, struct symbol *, int);
-void	parse_non_own_declaration (treenode *, struct symbol *, int, int);
-void	parse_decls (treenode *, struct symbol *, int);
-void	parse_stats (treenode *, treenode *,  struct symbol *);
-treenode *parse_expressionlist (struct symbol *);
-treenode *parse_actpar (struct symbol *);
-treenode *parse_actparlist (struct symbol *);
-treenode *parse_assignmentrhs (struct symbol *);
-treenode *parse_id_as_stat (treenode *, treenode *, struct symbol *);
-treenode *parse_stat (treenode *, treenode *, struct symbol *);
-treenode *parse_goto (treenode *, treenode *, struct symbol *);
-treenode *parse_block_or_compound (treenode *, treenode *, struct symbol *);
-treenode *parse_if_stat (treenode *, treenode *, struct symbol *);
-treenode *parse_for_stat (treenode *, treenode *, struct symbol *);
-treenode *parse_step_element (treenode *, treenode *, struct symbol *);
-treenode *parse_while_element (treenode *, treenode *, struct symbol *);
-treenode *parse_forelement (treenode *, struct symbol *);
-treenode *parse_forelements (treenode *, struct symbol *);
-void	syn_error (struct symbol *, char *, char *, char *);
+treenode* parse_primary(struct symbol*);
+treenode* parse_expression(int, struct symbol*);
+int	starts_decl(struct symbol*);
+void	parse_switch_declaration(treenode*, treenode*, struct symbol*);
+void	parse_simdecl(treenode*, treenode*, struct symbol*, int);
+void	parse_simdecls(treenode*, treenode*, struct symbol*, int);
+treenode* parse_bounds(struct symbol*);
+void	parse_array_ident(treenode*, treenode* st, struct symbol*, int);
+void	parse_array_identifiers(treenode*, treenode* st, struct symbol* s, int);
+void	parse_arraydecl(treenode*, treenode* el_type, struct symbol*, int);
+void	parse_arraydecls(treenode*, treenode*, struct symbol*, int);
+void	parse_value_ids(treenode*, struct symbol*);
+void	parse_value_id(treenode*, struct symbol*);
+int	param_separator(struct symbol*);
+void	parse_params(treenode*, struct symbol*);
+void	parse_param(treenode*, struct symbol*);
+void	parse_parspec(treenode*, treenode*, struct symbol*);
+void	parse_parspecs(treenode*, treenode*, struct symbol*);
+void	parse_param_spec(treenode*, struct symbol*);
+void	parse_param_specs(treenode*, struct symbol*);
+void	parse_procdecl(treenode*, treenode*, struct symbol*, int);
+int	parse_decl(treenode*, struct symbol*, int);
+void	parse_non_own_declaration(treenode*, struct symbol*, int, int);
+void	parse_decls(treenode*, struct symbol*, int);
+void	parse_stats(treenode*, treenode*, struct symbol*);
+treenode* parse_expressionlist(struct symbol*);
+treenode* parse_actpar(struct symbol*);
+treenode* parse_actparlist(struct symbol*);
+treenode* parse_assignmentrhs(struct symbol*);
+treenode* parse_id_as_stat(treenode*, treenode*, struct symbol*);
+treenode* parse_stat(treenode*, treenode*, struct symbol*);
+treenode* parse_goto(treenode*, treenode*, struct symbol*);
+treenode* parse_block_or_compound(treenode*, treenode*, struct symbol*);
+treenode* parse_if_stat(treenode*, treenode*, struct symbol*);
+treenode* parse_for_stat(treenode*, treenode*, struct symbol*);
+treenode* parse_step_element(treenode*, treenode*, struct symbol*);
+treenode* parse_while_element(treenode*, treenode*, struct symbol*);
+treenode* parse_forelement(treenode*, struct symbol*);
+treenode* parse_forelements(treenode*, struct symbol*);
+void	syn_error(struct symbol*, char*, char*, char*);
 //
 //	analyse
 //
-void	analyse			(treenode *, treenode *);
-void	analyse_switch		(treenode *, treenode *);
-void	analyse_labdecl		(treenode *, treenode *);
-void	analyse_procdecl	(treenode *, treenode *);
-void	analyse_bounds		(treenode *, treenode *);
-void	analyse_subtype	 	(treenode *, treenode *);
-void	analyse_vardecl		(treenode *, treenode *);
-treenode *analyse_id_as_lhs 	(treenode *, treenode *);
-treenode *analyse_indexing_as_lhs (treenode *, treenode *);
-treenode *analyse_lhs		(treenode *, treenode *);
-void	analyse_assignment 	(treenode *, treenode *);
-void	analyse_functioncall 	(treenode *, treenode *, treenode *, int);
-void	analyse_parameters 	(treenode *, treenode *, treenode *, int);
-void	analyse_unspecified_actuals (treenode *, treenode *, treenode *, int);
-void	actual_is_thunk (treenode *, treenode *, treenode *, int);
-void	actual_is_array_id (treenode *, treenode *, treenode *, treenode *, int);
-void	actual_is_string_id (treenode *, treenode *, treenode *, treenode *, int);
-void	actual_is_just_param_to_be_passed (treenode *, treenode *, treenode *, treenode *, int);
-void	actual_is_function_id (treenode *, treenode *, treenode *, treenode *, int);
-void	actual_is_plain_id (treenode *, treenode *, treenode *, treenode *, int);
-void	analyse_actual_parameter (treenode *, treenode *, treenode *, treenode *, int);
-void	analyse_forelement	(treenode *, treenode *, treenode *);
-void	analyse_forstat		(treenode *, treenode *);
-void	analyse_expressions 	(treenode *, treenode *, treenode *, int);
-void	analyse_constant 	(char *, treenode *, treenode *, treenode *);
-void	analyse_id_as_prim 	(treenode *, treenode *, treenode *, int);
-void	analyse_indexing	(treenode *, treenode *, treenode *, int);
-void	match_with_indices	(treenode *, treenode *, treenode *, int);
-void	analyse_conditional	(treenode *, treenode *, treenode *, int);
-void	analyse_unary_expression (treenode *, treenode *, treenode *, int);
-void	analyse_binary_expression (treenode *, treenode *, treenode *, int);
-void	analyse_expression (treenode *, treenode *, treenode *, int);
-treenode *look_for_good_entity (treenode *, char *, treenode *);
-void	sem_error (int, char *, char *, char *);
+void	analyse(treenode*, treenode*);
+void	analyse_switch(treenode*, treenode*);
+void	analyse_labdecl(treenode*, treenode*);
+void	analyse_procdecl(treenode*, treenode*);
+void	analyse_bounds(treenode*, treenode*);
+void	analyse_subtype(treenode*, treenode*);
+void	analyse_vardecl(treenode*, treenode*);
+treenode* analyse_id_as_lhs(treenode*, treenode*);
+treenode* analyse_indexing_as_lhs(treenode*, treenode*);
+treenode* analyse_lhs(treenode*, treenode*);
+void	analyse_assignment(treenode*, treenode*);
+void	analyse_functioncall(treenode*, treenode*, treenode*, int);
+void	analyse_parameters(treenode*, treenode*, treenode*, int);
+void	analyse_unspecified_actuals(treenode*, treenode*, treenode*, int);
+void	actual_is_thunk(treenode*, treenode*, treenode*, int);
+void	actual_is_array_id(treenode*, treenode*, treenode*, treenode*, int);
+void	actual_is_string_id(treenode*, treenode*, treenode*, treenode*, int);
+void	actual_is_just_param_to_be_passed(treenode*, treenode*, treenode*, treenode*, int);
+void	actual_is_function_id(treenode*, treenode*, treenode*, treenode*, int);
+void	actual_is_plain_id(treenode*, treenode*, treenode*, treenode*, int);
+void	analyse_actual_parameter(treenode*, treenode*, treenode*, treenode*, int);
+void	analyse_forelement(treenode*, treenode*, treenode*);
+void	analyse_forstat(treenode*, treenode*);
+void	analyse_expressions(treenode*, treenode*, treenode*, int);
+void	analyse_constant(char*, treenode*, treenode*, treenode*);
+void	analyse_id_as_prim(treenode*, treenode*, treenode*, int);
+void	analyse_indexing(treenode*, treenode*, treenode*, int);
+void	match_with_indices(treenode*, treenode*, treenode*, int);
+void	analyse_conditional(treenode*, treenode*, treenode*, int);
+void	analyse_unary_expression(treenode*, treenode*, treenode*, int);
+void	analyse_binary_expression(treenode*, treenode*, treenode*, int);
+void	analyse_expression(treenode*, treenode*, treenode*, int);
+treenode* look_for_good_entity(treenode*, char*, treenode*);
+void	sem_error(int, char*, char*, char*);
 //
 //		back end				
 //
-void	generate_kop		(FILE *, char *, char *, char *);
-void	generate_headers	(treenode *);
-void	generate_switch_spec	(treenode *);
-void	generate_lab_spec 	(treenode *);
-void	generate_subtype_spec	(treenode *);
-void	generate_proc_spec	(treenode *);
-void	generate_c_spec		(treenode *);
-void	generate_spec_for_c_type_proc (treenode *);
-void	generate_spec_for_jff_type_proc (treenode *);
-void	generate_envelope_spec	(treenode *);
-void	generate_envelope	(treenode *);
-void	transfer_code		(treenode *, treenode *, int);
-void	generate_thunk_spec	(treenode *);
-void	parameter_specs		(treenode *);
-void	parameter_spec		(treenode *);
-void	generate_par_fields	(treenode *);
-void	parameter_field		(treenode *);
-void	generate_local_fields	(treenode *);
-void	parameter_decls		(treenode *);
-void	parameter_decl		(treenode *);
-void	init_activation_record	(treenode *);
-void	init_parameter_in_ar	(treenode *, treenode *);
-void	generate_var_spec	(treenode *);
-void	generate_var_decl	(treenode *, treenode *);
-void	generate_elab_code	(treenode *, treenode *);
-void	generate_proc_code	(treenode *);
-void	generate_body_for_jff_proc (treenode *);
-void	generate_body_for_c_proc (treenode *);
-void	generate_local_declarations (treenode *);
-void	generate_thunk_code	(treenode *);
-void	generate_body_for_address_thunk (treenode *);
-void	generate_body_for_value_thunk (treenode *);
-void	generate_switch_decl	(treenode *);
-void	generate_subtype_decl	(treenode *);
-void	generate_lab_decl	(treenode *);
-void	generate_declaration_code (treenode *, treenode *);
-void	generate_var_elab	(treenode *, treenode *);
-void	generate_subtype_elab	(treenode *, treenode *);
-void	code_for_block_body	(treenode *, treenode *);
-void	statement_code		(treenode *, treenode *);
-void	generate_if_stat	(treenode *, treenode *);
-void	code_for_expression	(treenode *, treenode *, treenode *);
-void	generate_call		(treenode *, treenode *, treenode *, int);
-void	call_to_formal		(treenode *, treenode *, treenode *, int);
-void	pr_data_for_hard_param	(char, char);
-void	hard_parameter		(treenode *, treenode *, int);
-void	hard_param_is_parameter (treenode *, treenode *, int);
-void	call_to_regular_proc	(treenode *, treenode *, treenode *);
-void	code_for_actual		(treenode *, treenode *, treenode *);
-void	code_for_function_as_actual (treenode *, treenode *);
-void	code_for_array_as_actual (treenode *, treenode *, treenode *);
-void	code_for_switch_as_actual (treenode *, treenode *, treenode *);
-void	code_for_string_as_actual (treenode *, treenode *, treenode *);
-void	thunk_or_function_as_actual (treenode *, treenode *, treenode *);
-void	assign_to_simple	(treenode *, treenode *, treenode *);
-void	increment_simple	(treenode *, treenode *, treenode *);
-void	assign_to_indexed	(treenode *, treenode *, treenode *);
-void	increment_indexed	(treenode *, treenode *, treenode *);
-void	assignment_code		(treenode *, treenode *, treenode *);
-void	increment_code		(treenode *, treenode *, treenode *);
-void	generate_block_code	(treenode *, treenode *);
-void	call_value_thunk	(treenode *, treenode *);
-void	code_for_id_as_prim	(treenode *, treenode *);
-void	code_for_indexed_switch (treenode *, treenode *, treenode *);
-void	code_for_indexed_static (treenode *, treenode *, treenode *);
-void	code_for_indexed_dynamic (treenode *, treenode *, treenode *);
-void	code_for_indexed_value	(treenode *, treenode *);
-treenode *get_lb		(treenode *, int);
-void	ith_lower_bound		(treenode *, int, treenode *);
-void	generate_for_stat	(treenode *, treenode *);
-void	generate_for_element	(treenode *, treenode *, treenode *, treenode *);
-void	generate_single_fe	(treenode *, treenode *, treenode *, treenode *);
-void	generate_while_fe	(treenode *, treenode *, treenode *, treenode *);
-void	generate_step_until_fe	(treenode *, treenode *, treenode *, treenode *);
-void	generate_goto		(treenode *, treenode *);
-void	code_for_unary_expression (treenode *, treenode *);
-void	code_for_binary_expression (treenode *, treenode *);
-void	link_statement		(treenode *, treenode *);
-void	link_declaration	(treenode *, treenode *);
-void	link_in_front_to	(treenode *, treenode *);
-void	link_to_globals		(treenode *);
-void	link_to_environmental_proc (treenode *);
-char	*type_name		(treenode *);
-char	*c_type_name		(treenode *);
-char	*op_name		(treenode *);
-void	set_access		(treenode *, treenode *, int);
-treenode *get_environmental_proc (treenode *);
-int	get_dimensions		(treenode *);
-int	in_scope		(treenode *, treenode *);
-int	proc_level_of		(treenode *);
-int	is_compatible		(treenode *, treenode *);
-char	*c_nameof		(treenode *);
-treenode *create_thunk		(treenode *, treenode *, treenode *);
-treenode *thunk_as_param	(treenode *);
-int	block_of		(treenode *);
-void	pr_access_to_simple_entity (treenode *, treenode *);
-void	pr_name_of_formal_string (treenode *, treenode *);
-void	pr_address_of_switch	(treenode *, treenode *);
-void	pr_address_of_formal_switch (treenode *, treenode *);
-void	pr_link_for_switch (treenode *, treenode *);
-void	pr_link_of_formal_switch (treenode *, treenode *);
-void	pr_x_descriptor (treenode *, treenode *, int);
-void	pr_name_of_descriptor    (treenode *, treenode *);
-void	pr_address_of_descriptor (treenode *, treenode *);
-void	pr_name_of_array	(treenode *, treenode *);
-void	pr_link_for_formal_proc (treenode *, treenode *);
-void	pr_address_of_formal_proc (treenode *, treenode *);
-void	pr_address_of_regular_proc (treenode *, treenode *);
-void	pr_link_to_proc_env (treenode *, treenode *);
-void	pr_access_to_label (treenode *, treenode *);
-void	pr_address_of_value_thunk (treenode *, treenode *);
-void	pr_address_of_address_thunk (treenode *, treenode *);
-void	pr_link_to_thunk (treenode *, treenode *);
-void	pr_access_to_local_entity (treenode *, treenode *, char *);
-treenode *proc_embedded_in_to	(treenode *, treenode *);
-void	pr_link_x		(treenode *, treenode *);
-void	pr_link			(treenode *, treenode *);
-void	pr_type_of_ar		(treenode *);
-void	pr_declaration_comment	(treenode *);
-int	count_entities		(treenode *);
-char	*new_for_id		(treenode *);
-treenode *make_proc_call	(treenode *, treenode *);
-treenode *result_type		(treenode *);
-treenode *type_of		(treenode *);
-treenode *element_type		(treenode *);
-int	is_single_statement	(treenode *);
-void	set_own			(treenode *);
-int	is_own			(treenode *);
-void	set_needs_deallocation	(treenode *);
-int	needs_deallocation	(treenode *);
-void	set_array_as_parameter	(treenode *);
-void	set_subtype_needs_descriptor (treenode *);
-int	subtype_needs_descriptor (treenode *);
-int	is_defined		(treenode *);
-void	set_defined		(treenode *);
-int	is_valid_value_param	(treenode *);
-void	set_static_array	(treenode *);
-int	is_static_array		(treenode *);
-int	can_be_assigned_to	(treenode *);
-int	type_of_entity_is_simple (treenode *);
-int	is_parameter		(treenode *);
-int	is_arithmetic_array	(treenode *);
-int	is_switch		(treenode *);
-int	has_a_proc_type		(treenode *);
-int	is_a_proc_decl		(treenode *);
-int	has_label_type		(treenode *);
-int	has_string_type		(treenode *);
-int	is_specified_as_value	(treenode *);
-void	set_specified_as_value	(treenode *);
-void	set_statement_has_label (treenode *);
-int	has_statement_label	(treenode *);
-void	set_proc_as_parameter	(treenode *);
-int	is_proc_as_parameter	(treenode *);
-int	is_accessed		(treenode *);
-void	set_accessed		(treenode *);
-void	set_constant_expression	(treenode *);
-void	set_assigned		(treenode *);
-int	is_assigned_to		(treenode *);
-int	is_constant_expression	(treenode *);
-int	is_elaborated 		(treenode *);
-void	set_elaborated		(treenode *);
-void	set_error		(treenode *);
-int	is_erroneous		(treenode *);
-int	is_cproc		(treenode *);
-int	need_static_link	(treenode *);
-void	set_need_static_link	(treenode *);
-void	set_needs_ar		(treenode *);
-int	will_be_compiled_as_c_proc (treenode *);
-int	has_far_access		(treenode *);
-void	set_far_access		(treenode *);
-int	matching_param_type	(treenode *, treenode *);
-int	formal_requires_thunk	(treenode *);
-void	add_to_output		(char *);
-char	*num_to_string		(int);
-char	*char_to_string		(char);
+void	generate_kop(FILE*, char*, char*, char*);
+void	generate_headers(treenode*);
+void	generate_switch_spec(treenode*);
+void	generate_lab_spec(treenode*);
+void	generate_subtype_spec(treenode*);
+void	generate_proc_spec(treenode*);
+void	generate_c_spec(treenode*);
+void	generate_spec_for_c_type_proc(treenode*);
+void	generate_spec_for_jff_type_proc(treenode*);
+void	generate_envelope_spec(treenode*);
+void	generate_envelope(treenode*);
+void	transfer_code(treenode*, treenode*, int);
+void	generate_thunk_spec(treenode*);
+void	parameter_specs(treenode*);
+void	parameter_spec(treenode*);
+void	generate_par_fields(treenode*);
+void	parameter_field(treenode*);
+void	generate_local_fields(treenode*);
+void	parameter_decls(treenode*);
+void	parameter_decl(treenode*);
+void	init_activation_record(treenode*);
+void	init_parameter_in_ar(treenode*, treenode*);
+void	generate_var_spec(treenode*);
+void	generate_var_decl(treenode*, treenode*);
+void	generate_elab_code(treenode*, treenode*);
+void	generate_proc_code(treenode*);
+void	generate_body_for_jff_proc(treenode*);
+void	generate_body_for_c_proc(treenode*);
+void	generate_local_declarations(treenode*);
+void	generate_thunk_code(treenode*);
+void	generate_body_for_address_thunk(treenode*);
+void	generate_body_for_value_thunk(treenode*);
+void	generate_switch_decl(treenode*);
+void	generate_subtype_decl(treenode*);
+void	generate_lab_decl(treenode*);
+void	generate_declaration_code(treenode*, treenode*);
+void	generate_var_elab(treenode*, treenode*);
+void	generate_subtype_elab(treenode*, treenode*);
+void	code_for_block_body(treenode*, treenode*);
+void	statement_code(treenode*, treenode*);
+void	generate_if_stat(treenode*, treenode*);
+void	code_for_expression(treenode*, treenode*, treenode*);
+void	generate_call(treenode*, treenode*, treenode*, int);
+void	call_to_formal(treenode*, treenode*, treenode*, int);
+void	pr_data_for_hard_param(char, char);
+void	hard_parameter(treenode*, treenode*, int);
+void	hard_param_is_parameter(treenode*, treenode*, int);
+void	call_to_regular_proc(treenode*, treenode*, treenode*);
+void	code_for_actual(treenode*, treenode*, treenode*);
+void	code_for_function_as_actual(treenode*, treenode*);
+void	code_for_array_as_actual(treenode*, treenode*, treenode*);
+void	code_for_switch_as_actual(treenode*, treenode*, treenode*);
+void	code_for_string_as_actual(treenode*, treenode*, treenode*);
+void	thunk_or_function_as_actual(treenode*, treenode*, treenode*);
+void	assign_to_simple(treenode*, treenode*, treenode*);
+void	increment_simple(treenode*, treenode*, treenode*);
+void	assign_to_indexed(treenode*, treenode*, treenode*);
+void	increment_indexed(treenode*, treenode*, treenode*);
+void	assignment_code(treenode*, treenode*, treenode*);
+void	increment_code(treenode*, treenode*, treenode*);
+void	generate_block_code(treenode*, treenode*);
+void	call_value_thunk(treenode*, treenode*);
+void	code_for_id_as_prim(treenode*, treenode*);
+void	code_for_indexed_switch(treenode*, treenode*, treenode*);
+void	code_for_indexed_static(treenode*, treenode*, treenode*);
+void	code_for_indexed_dynamic(treenode*, treenode*, treenode*);
+void	code_for_indexed_value(treenode*, treenode*);
+treenode* get_lb(treenode*, int);
+void	ith_lower_bound(treenode*, int, treenode*);
+void	generate_for_stat(treenode*, treenode*);
+void	generate_for_element(treenode*, treenode*, treenode*, treenode*);
+void	generate_single_fe(treenode*, treenode*, treenode*, treenode*);
+void	generate_while_fe(treenode*, treenode*, treenode*, treenode*);
+void	generate_step_until_fe(treenode*, treenode*, treenode*, treenode*);
+void	generate_goto(treenode*, treenode*);
+void	code_for_unary_expression(treenode*, treenode*);
+void	code_for_binary_expression(treenode*, treenode*);
+void	link_statement(treenode*, treenode*);
+void	link_declaration(treenode*, treenode*);
+void	link_in_front_to(treenode*, treenode*);
+void	link_to_globals(treenode*);
+void	link_to_environmental_proc(treenode*);
+char* type_name(treenode*);
+char* c_type_name(treenode*);
+char* op_name(treenode*);
+void	set_access(treenode*, treenode*, int);
+treenode* get_environmental_proc(treenode*);
+int	get_dimensions(treenode*);
+int	in_scope(treenode*, treenode*);
+int	proc_level_of(treenode*);
+int	is_compatible(treenode*, treenode*);
+char* c_nameof(treenode*);
+treenode* create_thunk(treenode*, treenode*, treenode*);
+treenode* thunk_as_param(treenode*);
+int	block_of(treenode*);
+void	pr_access_to_simple_entity(treenode*, treenode*);
+void	pr_name_of_formal_string(treenode*, treenode*);
+void	pr_address_of_switch(treenode*, treenode*);
+void	pr_address_of_formal_switch(treenode*, treenode*);
+void	pr_link_for_switch(treenode*, treenode*);
+void	pr_link_of_formal_switch(treenode*, treenode*);
+void	pr_x_descriptor(treenode*, treenode*, int);
+void	pr_name_of_descriptor(treenode*, treenode*);
+void	pr_address_of_descriptor(treenode*, treenode*);
+void	pr_name_of_array(treenode*, treenode*);
+void	pr_link_for_formal_proc(treenode*, treenode*);
+void	pr_address_of_formal_proc(treenode*, treenode*);
+void	pr_address_of_regular_proc(treenode*, treenode*);
+void	pr_link_to_proc_env(treenode*, treenode*);
+void	pr_access_to_label(treenode*, treenode*);
+void	pr_address_of_value_thunk(treenode*, treenode*);
+void	pr_address_of_address_thunk(treenode*, treenode*);
+void	pr_link_to_thunk(treenode*, treenode*);
+void	pr_access_to_local_entity(treenode*, treenode*, char*);
+treenode* proc_embedded_in_to(treenode*, treenode*);
+void	pr_link_x(treenode*, treenode*);
+void	pr_link(treenode*, treenode*);
+void	pr_type_of_ar(treenode*);
+void	pr_declaration_comment(treenode*);
+int	count_entities(treenode*);
+char* new_for_id(treenode*);
+treenode* make_proc_call(treenode*, treenode*);
+treenode* result_type(treenode*);
+treenode* type_of(treenode*);
+treenode* element_type(treenode*);
+int	is_single_statement(treenode*);
+void	set_own(treenode*);
+int	is_own(treenode*);
+void	set_needs_deallocation(treenode*);
+int	needs_deallocation(treenode*);
+void	set_array_as_parameter(treenode*);
+void	set_subtype_needs_descriptor(treenode*);
+int	subtype_needs_descriptor(treenode*);
+int	is_defined(treenode*);
+void	set_defined(treenode*);
+int	is_valid_value_param(treenode*);
+void	set_static_array(treenode*);
+int	is_static_array(treenode*);
+int	can_be_assigned_to(treenode*);
+int	type_of_entity_is_simple(treenode*);
+int	is_parameter(treenode*);
+int	is_arithmetic_array(treenode*);
+int	is_switch(treenode*);
+int	has_a_proc_type(treenode*);
+int	is_a_proc_decl(treenode*);
+int	has_label_type(treenode*);
+int	has_string_type(treenode*);
+int	is_specified_as_value(treenode*);
+void	set_specified_as_value(treenode*);
+void	set_statement_has_label(treenode*);
+int	has_statement_label(treenode*);
+void	set_proc_as_parameter(treenode*);
+int	is_proc_as_parameter(treenode*);
+int	is_accessed(treenode*);
+void	set_accessed(treenode*);
+void	set_constant_expression(treenode*);
+void	set_assigned(treenode*);
+int	is_assigned_to(treenode*);
+int	is_constant_expression(treenode*);
+int	is_elaborated(treenode*);
+void	set_elaborated(treenode*);
+void	set_error(treenode*);
+int	is_erroneous(treenode*);
+int	is_cproc(treenode*);
+int	need_static_link(treenode*);
+void	set_need_static_link(treenode*);
+void	set_needs_ar(treenode*);
+int	will_be_compiled_as_c_proc(treenode*);
+int	has_far_access(treenode*);
+void	set_far_access(treenode*);
+int	matching_param_type(treenode*, treenode*);
+int	formal_requires_thunk(treenode*);
+void	add_to_output(char*);
+char* num_to_string(int);
+char* char_to_string(char);
 //
 //	namelist defines
 //
-void	init_nametables		();
-int	create_scope		(treenode *);
-void	leave_scope		();
-void	add_entry		(treenode *, char *);
-treenode *find_in_scope		(int, char *);
-treenode *find_definition	(int, char *);
-void	put_in_forgotten_list	(int, char *);
-int	in_forgotten_list	(int, char *);
+void	init_nametables();
+int	create_scope(treenode*);
+void	leave_scope();
+void	add_entry(treenode*, char*);
+treenode* find_in_scope(int, char*);
+treenode* find_definition(int, char*);
+void	put_in_forgotten_list(int, char*);
+int	in_forgotten_list(int, char*);
 

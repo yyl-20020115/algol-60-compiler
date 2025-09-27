@@ -1,5 +1,3 @@
-#
-#
 //
 //	jff_a2c
 //	a simple translator from Algol 60 to plain C
@@ -35,27 +33,27 @@
 //
 #include <setjmp.h>
 #include <math.h>
-#include	<stdarg.h>
-extern	void	*__jff_element_address (char *, int *, int, ...);
+#include <stdarg.h>
+extern	void* __jff_element_address(char*, int*, int, ...);
 extern	void	__dv_init();
-extern	int	*__jff_descriptor_for_value (int *, int, char *);
-extern	char	*__jff_allocate_array (int *, char *);
-extern	void	__typed_copy (int *, int *, char *, char *);
-extern	void	__deallocate (char *);
-extern	void	__print_depth (int, char *);
-extern	char	*__eval_value_thunk (char **, int, char);
-extern	char	*__get_function_address (char **, int, char);
-extern	char	*__get_function_link (char **, int, char);
-extern	char	*__get_array_address (char **, int, char);
-extern	int 	*__get_array_descr (char **, int, char);
-extern	char	*__get_value_thunk (char **,int, char);
-extern	char	*__get_address_thunk (char **, int, char);
-extern	char	*__get_thunk_link (char **, int);
-extern	char	*__get_switch_address (char **, int, char);
-extern	char	*__get_switch_link (char **, int);
-extern	double	read_real (int);
-int     raw_in  (int);  
-int     raw_out (int fd, int val);
+extern	int* __jff_descriptor_for_value(int*, int, char*);
+extern	char* __jff_allocate_array(int*, char*);
+extern	void	__typed_copy(int*, int*, char*, char*);
+extern	void	__deallocate(char*);
+extern	void	__print_depth(int, char*);
+extern	char* __eval_value_thunk(char**, int, char);
+extern	char* __get_function_address(char**, int, char);
+extern	char* __get_function_link(char**, int, char);
+extern	char* __get_array_address(char**, int, char);
+extern	int* __get_array_descr(char**, int, char);
+extern	char* __get_value_thunk(char**, int, char);
+extern	char* __get_address_thunk(char**, int, char);
+extern	char* __get_thunk_link(char**, int);
+extern	char* __get_switch_address(char**, int, char);
+extern	char* __get_switch_link(char**, int);
+extern	double	read_real(int);
+int     raw_in(int);
+int     raw_out(int fd, int val);
 
 #define	DOPE_BASE	2
 #define	true	1
@@ -63,11 +61,11 @@ int     raw_out (int fd, int val);
 
 #define	arctan	atan
 #define ln	log
-extern	int	__ipow (int, int);
-extern	double	__npow (double, int);
-extern	double	__fpow (double, double);
-extern	int	__mod  (int, int);
-void	jff_longjmp (jmp_buf *);
+extern	int	__ipow(int, int);
+extern	double	__npow(double, int);
+extern	double	__fpow(double, double);
+extern	int	__mod(int, int);
+void	jff_longjmp(jmp_buf*);
 
 
 /* Addressing parameters */
